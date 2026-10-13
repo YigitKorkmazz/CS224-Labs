@@ -1,0 +1,295 @@
+.text
+
+main:
+la $a0, arrayPrompt
+li $v0, 4
+syscall
+
+li $v0, 5 #take dimension input
+syscall
+add $s0, $v0, $zero
+
+mul $s1, $s0, $s0 #total number of elements
+
+mul $a0, $s2, 4 #bytes to allocate
+li $v0, 9
+syscall
+
+move $s2, $v0 #base of address
+move $a0, $s2
+jal fill_matrix
+
+move $a0, $s2
+jal print_matrix
+
+la $a0,choosePrompt
+li $v0, 4
+syscall
+
+la $a0,msg1
+li $v0, 4
+syscall
+
+la $a0,msg2
+li $v0, 4
+syscall
+
+la $a0,msg3
+li $v0, 4
+syscall
+
+la $a0,msg4
+li $v0, 4
+syscall
+
+la $a0,endl
+li $v0, 4
+syscall
+
+li $v0, 5
+syscall
+add $s4, $v0, $zero #choice
+
+beq $s4, 1, calculateRowSum
+beq $s4, 2, calculateColSum
+beq $s4, 3, displayTargetItem
+beq $s4, 4, end
+
+calculateRowSum:
+    li $t0, 0
+
+rowLoop:
+    beq $t0, $s0, rowSumDone
+    li $t1, 0
+    li $s5, 0
+
+    addi $t3, $t0, 1
+    la $a0, resultRow
+    li $v0, 4
+    syscall
+
+    move $a0, $t3
+    li $v0, 1
+    syscall
+
+    la $a0, space
+    li $v0, 4
+    syscall
+
+colLoop:
+    beq $t1, $s0, printRowSum
+
+
+    mul $t4, $t1, $s0
+    add $t4, $t4, $t0
+    mul $t4, $t4, 4
+    add $t4, $t4, $s2
+
+    lw $t5, 0($t4)
+    add $s5, $s5, $t5
+
+    addi $t1, $t1, 1
+    j colLoop
+
+printRowSum:
+    move $a0, $s5
+    li $v0, 1
+    syscall
+
+    la $a0, endl
+    li $v0, 4
+    syscall
+
+    addi $t0, $t0, 1
+    j rowLoop
+
+rowSumDone:
+    jr $ra
+
+	 	
+calculateColSum:
+    li $t0, 0
+
+colLoop2:
+    beq $t0, $s0, colSumDone  # if col == N, done
+    li $t1, 0 
+    li $s6, 0
+
+
+    addi $t3, $t0, 1
+    la $a0, resultCol
+    li $v0, 4
+    syscall
+
+    move $a0, $t3
+    li $v0, 1
+    syscall
+
+    la $a0, space
+    li $v0, 4
+    syscall
+
+rowLoop2:
+    beq $t1, $s0, printColSum   # if row == N, done summing
+
+    mul $t4, $t0, $s0
+    add $t4, $t4, $t1
+    mul $t4, $t4, 4
+    add $t4, $t4, $s2
+
+    lw $t5, 0($t4)         # load array[row][col]
+    add $s6, $s6, $t5      # add to col sum
+
+    addi $t1, $t1, 1       # row++
+    j rowLoop2
+
+printColSum:
+    move $a0, $s6
+    li $v0, 1
+    syscall
+
+    la $a0, endl
+    li $v0, 4
+    syscall
+
+    addi $t0, $t0, 1
+    j colLoop2
+
+colSumDone:
+    jr $ra
+	
+displayTargetItem:
+	la $a0, targetRow
+	li $v0, 4
+	syscall
+	
+	li $v0, 5
+	syscall
+	add $s4, $zero, $v0
+	
+	la $a0, endl
+	li $v0, 4
+	syscall
+	
+	la $a0, targetColumn
+	li $v0, 4
+	syscall
+	
+	li $v0, 5
+	syscall
+	add $s5, $zero, $v0
+	
+	la $a0, endl
+	li $v0, 4
+	syscall
+	
+	la $a0, theElementIs
+	li $v0, 4
+	syscall
+	
+	add $t0, $zero, $zero
+	add $t1, $zero, $zero
+	add $t2, $zero, $zero
+	
+	mul $t0, $s4, 4
+	mul $t1, $s5, 4
+	mul $t1, $t1, $s0
+	add $t1, $t1, $t0
+	
+	add $t2, $s2, $t1
+	
+	
+	lw $a0, 0($t2)
+	li $v0, 1
+	syscall
+	
+	jr $ra
+	
+end:
+li $v0, 10
+syscall
+
+fill_matrix:
+    	li $t1, 1
+    	li $t2, 0 # column index
+
+	fill_columns:
+    	beq $t2, $s0, done_fill_cols  # if col == N, done
+
+    	li $t3, 0 # row index
+
+	fill_rows:
+    	beq $t3, $s0, next_col
+
+    	addi $t4, $t1, -1
+    	mul $t5, $t4, 4
+    	add $t6, $s2, $t5
+
+    	sw $t1, 0($t6)
+    	addi $t1, $t1, 1
+    	addi $t3, $t3, 1
+    	j fill_rows
+
+	next_col:
+    	addi $t2, $t2, 1
+    	j fill_columns
+
+	done_fill_cols:
+    	jr $ra
+
+	
+print_matrix:
+	li $t0, 0
+
+	print_matrix_row:
+    	beq $t0, $s0, done_print_matrix # if row == N, stop
+    	li $t1, 0 
+
+	print_matrix_col:
+    	beq $t1, $s0, print_newline # if col == N, print newline
+
+    	mul $t2, $t1, $s0
+    	add $t2, $t2, $t0
+    	mul $t3, $t2, 4 
+    	add $t4, $t3, $s2
+
+    	lw $a0, 0($t4)
+    	li $v0, 1
+    	syscall
+
+    	la $a0, space
+    	li $v0, 4
+    	syscall
+
+    	addi $t1, $t1, 1
+    	
+    	j print_matrix_col
+
+	print_newline:
+    	la $a0, endl
+    	li $v0, 4
+    	syscall
+
+    	addi $t0, $t0, 1
+    	j print_matrix_row
+
+	done_print_matrix:
+    	jr $ra
+
+
+
+
+.data
+arrayPrompt: .asciiz "Please enter the dimension of the matrix: "
+msg1: .asciiz "\n  1. Obtain sum of matrix elements (Row by row)"
+msg2: .asciiz "\n  2. Obtain sum of matrix element (Column by column) "
+msg3: .asciiz "\n  3. Display the target item (row, col)"
+msg4: .asciiz "\n  4. Exit"
+choosePrompt:.asciiz "\nWhich Operation do you want to choose?"
+resultRow: .asciiz "The sum of row "
+resultCol: .asciiz "The sum of column "
+targetRow: .asciiz "Enter the target row index: "
+targetColumn: .asciiz "Enter the target column index: "
+theElementIs: .asciiz "The element at that coordinates is : "
+endl: .asciiz "\n"
+space: .asciiz " "

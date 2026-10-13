@@ -1,0 +1,16 @@
+.text		
+
+	#putting str address to a0 and printing it
+	la $a0,str
+	li $v0,4
+	syscall
+
+	li $v0,10
+	syscall
+
+
+#data segment
+
+	.data
+str:	.asciiz "Hello World\n"
+

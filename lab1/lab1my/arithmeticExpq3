@@ -1,0 +1,67 @@
+ #This program will calculate the expression  x = (2 * (a + b)/3) - (a mod b) without using div
+.text
+	li $v0, 4
+	la $a0, text
+	syscall
+	
+	la $a0, newLine
+	syscall
+	
+	la $a0, inputa
+	syscall
+	
+	li $v0, 5
+	syscall
+	move $t1, $v0 #putting input a to register t1
+	
+	li $v0, 4
+	la $a0, inputb
+	syscall
+	
+	li $v0, 5
+	syscall
+	move $t2, $v0 #putting input b to register t2
+	
+	move $t4, $t1
+	
+	add $t4,$t4,$t2 ## a+B
+	#finding 2*(a+b)
+	doubleAandSubstractB:
+		mul $t4, $t4,2
+		mflo $t4
+		
+		add $t6, $zero, $zero
+		addi $t5, $t5, 3 # loaded 3 to t5
+	divTwoExpressions:
+		div $t6, $t4,3
+		mflo $t6
+		
+	AModB:
+		div $t3, $t1,$t2
+		mfhi $t3
+		
+	
+	#Last subtraction 2*(a+B)/3 - a mod b
+	sub $t6, $t6, $t3	
+	
+	li $v0, 4
+	la $a0, resultX
+	syscall
+	
+	li $v0, 4
+	la $a0, newLine
+	syscall
+	
+	move $a0,$t6
+	li $v0,1
+	syscall
+	
+	li $v0, 10
+	syscall
+.data
+	text: .asciiz "You'll enter 2 integer values."
+	resultText: .asciiz "The result is: "
+	inputa: .asciiz "a input: "
+	inputb: .asciiz "b input: "
+	resultX: .asciiz "The calculation x = (2 * (a + b)/3) - (a mod b) "
+	newLine: .asciiz "\n"
